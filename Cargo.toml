@@ -32,7 +32,7 @@ tao-core-video-sys = "0.2.0"
 core-graphics = "0.24.0"
 screencapturekit = "0.2.8"
 screencapturekit-sys = "0.2.8"
-apple-sys = { git = "https://github.com/nathanregner/apple-sys", branch = "main", features = [
+apple-sys = { git = "https://github.com/kreatives-io/apple-sys", branch = "main", features = [
     "CoreMedia",
     "ScreenCaptureKit",
 ] }
