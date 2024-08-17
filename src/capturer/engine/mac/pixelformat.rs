@@ -1,98 +1,16 @@
-use std::{mem, slice};
+use std::slice;
 
-use core_foundation::{
-    base::CFTypeRef,
-    dictionary::{CFDictionaryGetValue, CFDictionaryRef},
-    number::{kCFNumberSInt64Type, CFNumberGetValue},
-};
 use screencapturekit::cm_sample_buffer::CMSampleBuffer;
-use screencapturekit_sys::cm_sample_buffer_ref::{
-    CMSampleBufferGetImageBuffer, CMSampleBufferGetSampleAttachmentsArray,
-};
+use screencapturekit_sys::cm_sample_buffer_ref::CMSampleBufferGetImageBuffer;
 
 use crate::frame::{
     convert_bgra_to_rgb, get_cropped_data, remove_alpha_channel, BGRAFrame, BGRFrame, RGBFrame,
-    YUVFrame,
 };
-use apple_sys::ScreenCaptureKit::{SCFrameStatus_SCFrameStatusComplete, SCStreamFrameInfoStatus};
-use core_graphics::display::{CFArrayGetCount, CFArrayGetValueAtIndex, CFArrayRef};
 use core_video_sys::{
-    CVPixelBufferGetBaseAddress, CVPixelBufferGetBaseAddressOfPlane, CVPixelBufferGetBytesPerRow,
-    CVPixelBufferGetBytesPerRowOfPlane, CVPixelBufferGetHeight, CVPixelBufferGetWidth,
-    CVPixelBufferLockBaseAddress, CVPixelBufferRef, CVPixelBufferUnlockBaseAddress,
+    CVPixelBufferGetBaseAddress, CVPixelBufferGetBytesPerRow, CVPixelBufferGetHeight,
+    CVPixelBufferGetWidth, CVPixelBufferLockBaseAddress, CVPixelBufferRef,
+    CVPixelBufferUnlockBaseAddress,
 };
-
-pub unsafe fn create_yuv_frame(sample_buffer: CMSampleBuffer) -> Option<YUVFrame> {
-    // Check that the frame status is complete
-    let buffer_ref = &(*sample_buffer.sys_ref);
-    {
-        let attachments = CMSampleBufferGetSampleAttachmentsArray(buffer_ref, 0);
-        if attachments.is_null() || CFArrayGetCount(attachments as CFArrayRef) == 0 {
-            return None;
-        }
-        let attachment = CFArrayGetValueAtIndex(attachments as CFArrayRef, 0) as CFDictionaryRef;
-        let frame_status_ref = CFDictionaryGetValue(
-            attachment as CFDictionaryRef,
-            SCStreamFrameInfoStatus.0 as _,
-        ) as CFTypeRef;
-        if frame_status_ref.is_null() {
-            return None;
-        }
-        let mut frame_status: i64 = 0;
-        let result = CFNumberGetValue(
-            frame_status_ref as _,
-            kCFNumberSInt64Type,
-            mem::transmute(&mut frame_status),
-        );
-        if !result {
-            return None;
-        }
-        if frame_status != SCFrameStatus_SCFrameStatusComplete {
-            return None;
-        }
-    }
-
-    //let epoch = CMSampleBufferGetPresentationTimeStamp(buffer_ref).epoch;
-    let epoch = sample_buffer.sys_ref.get_presentation_timestamp().value;
-    let pixel_buffer = CMSampleBufferGetImageBuffer(buffer_ref) as CVPixelBufferRef;
-
-    CVPixelBufferLockBaseAddress(pixel_buffer, 0);
-
-    let width = CVPixelBufferGetWidth(pixel_buffer);
-    let height = CVPixelBufferGetHeight(pixel_buffer);
-    if width == 0 || height == 0 {
-        return None;
-    }
-
-    let luminance_bytes_address = CVPixelBufferGetBaseAddressOfPlane(pixel_buffer, 0);
-    let luminance_stride = CVPixelBufferGetBytesPerRowOfPlane(pixel_buffer, 0);
-    let luminance_bytes = slice::from_raw_parts(
-        luminance_bytes_address as *mut u8,
-        height * luminance_stride,
-    )
-    .to_vec();
-
-    let chrominance_bytes_address = CVPixelBufferGetBaseAddressOfPlane(pixel_buffer, 1);
-    let chrominance_stride = CVPixelBufferGetBytesPerRowOfPlane(pixel_buffer, 1);
-    let chrominance_bytes = slice::from_raw_parts(
-        chrominance_bytes_address as *mut u8,
-        height * chrominance_stride / 2,
-    )
-    .to_vec();
-
-    CVPixelBufferUnlockBaseAddress(pixel_buffer, 0);
-
-    YUVFrame {
-        display_time: epoch as u64,
-        width: width as i32,
-        height: height as i32,
-        luminance_bytes,
-        luminance_stride: luminance_stride as i32,
-        chrominance_bytes,
-        chrominance_stride: chrominance_stride as i32,
-    }
-    .into()
-}
 
 pub unsafe fn create_bgr_frame(sample_buffer: CMSampleBuffer) -> Option<BGRFrame> {
     let buffer_ref = &(*sample_buffer.sys_ref);
