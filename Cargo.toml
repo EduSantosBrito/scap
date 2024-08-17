@@ -32,7 +32,10 @@ tao-core-video-sys = "0.2.0"
 core-graphics = "0.24.0"
 screencapturekit = "0.2.8"
 screencapturekit-sys = "0.2.8"
-apple-sys = { version = "0.2.0", features = ["CoreMedia", "ScreenCaptureKit"] }
+apple-sys = { git = "https://github.com/nathanregner/apple-sys", branch = "main", features = [
+    "CoreMedia",
+    "ScreenCaptureKit",
+] }
 cocoa = "0.25.0"
 objc = "0.2.7"
 
