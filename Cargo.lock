@@ -1024,6 +1024,7 @@ version = "0.0.5"
 dependencies = [
  "apple-sys",
  "cocoa",
+ "core-foundation 0.10.0",
  "core-graphics 0.24.0",
  "dbus",
  "objc",

@@ -1,5 +1,10 @@
 use std::{mem, slice};
 
+use core_foundation::{
+    base::CFTypeRef,
+    dictionary::{CFDictionaryGetValue, CFDictionaryRef},
+    number::{kCFNumberSInt64Type, CFNumberGetValue},
+};
 use screencapturekit::cm_sample_buffer::CMSampleBuffer;
 use screencapturekit_sys::cm_sample_buffer_ref::{
     CMSampleBufferGetImageBuffer, CMSampleBufferGetSampleAttachmentsArray,
@@ -9,13 +14,7 @@ use crate::frame::{
     convert_bgra_to_rgb, get_cropped_data, remove_alpha_channel, BGRAFrame, BGRFrame, RGBFrame,
     YUVFrame,
 };
-use apple_sys::{
-    CoreMedia::{
-        CFDictionaryGetValue, CFDictionaryRef, CFNumberGetValue, CFNumberType_kCFNumberSInt64Type,
-        CFTypeRef,
-    },
-    ScreenCaptureKit::{SCFrameStatus_SCFrameStatusComplete, SCStreamFrameInfoStatus},
-};
+use apple_sys::ScreenCaptureKit::{SCFrameStatus_SCFrameStatusComplete, SCStreamFrameInfoStatus};
 use core_graphics::display::{CFArrayGetCount, CFArrayGetValueAtIndex, CFArrayRef};
 use core_video_sys::{
     CVPixelBufferGetBaseAddress, CVPixelBufferGetBaseAddressOfPlane, CVPixelBufferGetBytesPerRow,
@@ -42,10 +41,10 @@ pub unsafe fn create_yuv_frame(sample_buffer: CMSampleBuffer) -> Option<YUVFrame
         let mut frame_status: i64 = 0;
         let result = CFNumberGetValue(
             frame_status_ref as _,
-            CFNumberType_kCFNumberSInt64Type,
+            kCFNumberSInt64Type,
             mem::transmute(&mut frame_status),
         );
-        if result == 0 {
+        if !result {
             return None;
         }
         if frame_status != SCFrameStatus_SCFrameStatusComplete {
