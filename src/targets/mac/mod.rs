@@ -1,8 +1,8 @@
 use cocoa::appkit::{NSApp, NSScreen};
 use cocoa::base::{id, nil};
 use cocoa::foundation::{NSRect, NSString, NSUInteger};
-use core_graphics_helmer_fork::display::{CGDirectDisplayID, CGDisplay, CGMainDisplayID};
-use core_graphics_helmer_fork::window::CGWindowID;
+use core_graphics::display::{CGDirectDisplayID, CGDisplay, CGMainDisplayID};
+use core_graphics::window::CGWindowID;
 use objc::{msg_send, sel, sel_impl};
 use screencapturekit::sc_shareable_content::SCShareableContent;
 

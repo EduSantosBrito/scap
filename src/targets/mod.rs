@@ -16,7 +16,7 @@ pub struct Window {
     pub raw_handle: windows::Win32::Foundation::HWND,
 
     #[cfg(target_os = "macos")]
-    pub raw_handle: core_graphics_helmer_fork::window::CGWindowID,
+    pub raw_handle: core_graphics::window::CGWindowID,
 }
 
 #[derive(Debug, Clone)]
@@ -28,7 +28,7 @@ pub struct Display {
     pub raw_handle: windows::Win32::Graphics::Gdi::HMONITOR,
 
     #[cfg(target_os = "macos")]
-    pub raw_handle: core_graphics_helmer_fork::display::CGDisplay,
+    pub raw_handle: core_graphics::display::CGDisplay,
 }
 
 #[derive(Debug, Clone)]
